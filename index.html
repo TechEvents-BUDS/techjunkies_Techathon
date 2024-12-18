@@ -20,11 +20,11 @@
       height: 100vh;
       padding: 20px;
       background-color: #121212;
-      color: white;
     }
 
     h1 {
-      font-size: 1.8rem;
+      color: #ffffff;
+      font-size: 2rem;
       margin-bottom: 20px;
     }
 
@@ -42,14 +42,11 @@
       border-radius: 8px;
       box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
       padding: 20px;
-      width: 100%;
-      max-width: 400px;
+      width: 300px;
       max-height: 400px;
       overflow-y: auto;
       background-size: cover;
       background-position: center;
-      margin: 0 auto;
-      transition: background 0.3s ease-in-out;
     }
 
     .card .content {
@@ -60,8 +57,6 @@
       background: rgba(255, 255, 255, 0.3); /* Semi-transparent background for glassmorphism */
       backdrop-filter: blur(10px); /* Blur effect */
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      color: #fff;
-      text-align: center;
     }
 
     #cityFact .content {
@@ -71,77 +66,15 @@
     input[type="text"], button {
       padding: 10px;
       margin: 10px;
-      width: 100%;
-      max-width: 300px;
-      border: none;
-      border-radius: 5px;
-      font-size: 1rem;
     }
 
     button {
       cursor: pointer;
-      background-color: #1e90ff;
-      color: white;
-    }
-
-    button:hover {
-      background-color: #0057d9;
     }
 
     a {
       color: #1e90ff;
       text-decoration: none;
-    }
-
-    /* Media Queries for Mobile Responsiveness */
-    @media (max-width: 768px) {
-      h1 {
-        font-size: 1.5rem;
-      }
-
-      .container {
-        gap: 15px;
-      }
-
-      .card {
-        width: 100%;
-        max-width: 100%;
-        padding: 15px;
-      }
-
-      input[type="text"], button {
-        width: 100%;
-        max-width: 100%;
-        font-size: 1.2rem;
-      }
-
-      .card .content {
-        padding: 15px;
-      }
-    }
-
-    @media (max-width: 480px) {
-      h1 {
-        font-size: 1.2rem;
-      }
-
-      .container {
-        gap: 10px;
-      }
-
-      .card {
-        width: 100%;
-        padding: 10px;
-      }
-
-      .card .content {
-        padding: 10px;
-        font-size: 0.9rem;
-      }
-
-      input[type="text"], button {
-        font-size: 1rem;
-      }
     }
 
   </style>
@@ -162,9 +95,6 @@
     <div id="currencyResult" class="card">
       <div class="content"></div>
     </div>
-    <div id="hotelResult" class="card">
-      <div class="content"></div>
-    </div>
   </div>
 
   <script>
@@ -179,8 +109,6 @@
     };
 
     const unsplashApiKey = '6W_vBP2bAg9e50c7vgnoHW06eakd6JQ-qzeICkghABk'; // Add your Unsplash API key here
-    const amadeusClientId = 'Tsr3OIjHDbSJARGJ6VWA7iRBHdlC7hcH';  // Replace with your actual Amadeus client ID
-    const amadeusClientSecret = '4EYdYMDOpNST1PJX';  // Replace with your actual Amadeus client secret
 
     async function fetchImage(query, cardId) {
       const url = `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&client_id=${unsplashApiKey}&per_page=1`;
@@ -239,97 +167,105 @@
         const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current_weather=true`;
         const weatherResponse = await fetch(weatherUrl);
         const weatherData = await weatherResponse.json();
-        
-        return weatherData.current_weather;
+
+        const temperature = weatherData.current_weather?.temperature || "N/A";
+        document.getElementById("weatherResult").querySelector('.content').innerHTML = `
+          <h3>Weather in ${city}</h3>
+          <p><strong>Temperature:</strong> ${temperature}°C</p>
+        `;
+
+        // Set background image based on temperature
+        if (temperature < 10) {
+          fetchImage("snow", "weatherResult");  // Snowy image for cold weather
+        } else if (temperature >= 10 && temperature <= 25) {
+          fetchImage("sunny", "weatherResult");  // Sunny image for mild weather
+        } else {
+          fetchImage("hot", "weatherResult");  // Hot image for warm weather
+        }
+
       } catch (error) {
-        console.error("Weather data fetch error:", error);
-        return null;
+        console.error(error);
+        document.getElementById("weatherResult").querySelector('.content').innerHTML = `<p>Error fetching weather data.</p>`;
       }
     }
 
-    async function getCityFact(city) {
-      const url = `https://restcountries.com/v3.1/name/${encodeURIComponent(city)}`;
+    async function fetchCityFact(city) {
+      const wikiUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(city)}`;
 
       try {
-        const response = await fetch(url);
+        const response = await fetch(wikiUrl);
         const data = await response.json();
 
-        return data[0]?.name?.common || 'No data available';
+        if (data.type === 'standard') {
+          document.getElementById("cityFact").querySelector('.content').innerHTML = `
+            <h3>About ${city}</h3>
+            <p>${data.extract}</p>
+            <a href="${data.content_urls.desktop.page}" target="_blank">Read more</a>
+          `;
+        } else {
+          document.getElementById("cityFact").querySelector('.content').innerHTML = `<p>No facts found for ${city}.</p>`;
+        }
+
+        // Set background image for city fact card
+        fetchImage(city, "cityFact");
       } catch (error) {
-        console.error("City fact fetch error:", error);
-        return 'No data available';
+        console.error(error);
+        document.getElementById("cityFact").querySelector('.content').innerHTML = `<p>Error fetching city facts.</p>`;
       }
     }
 
-    async function getCurrency(city) {
-      const currencyCode = countryToCurrencyMap[city] || 'USD';
-      return currencyCode;
-    }
-
-    async function getHotels(city) {
-      const authUrl = `https://test.api.amadeus.com/v1/security/oauth2/token`;
-      const credentials = btoa(`${amadeusClientId}:${amadeusClientSecret}`);
-
-      const headers = {
-        'Authorization': `Basic ${credentials}`,
-        'Content-Type': 'application/x-www-form-urlencoded'
-      };
-
-      const data = new URLSearchParams();
-      data.append('grant_type', 'client_credentials');
+    async function fetchCurrency(city) {
+      const apiKeyGeo = '04fe12020a6f4da0af38c5f5cf06ff41'; // OpenCage API key
+      const exchangeRateApiKey = 'bda6c1b974bd953dfd43f174'; // ExchangeRate API Key
 
       try {
-        const authResponse = await fetch(authUrl, {
-          method: 'POST',
-          headers: headers,
-          body: data
-        });
+        const geoUrl = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(city)}&key=${apiKeyGeo}`;
+        const geoResponse = await fetch(geoUrl);
+        const geoData = await geoResponse.json();
 
-        const authData = await authResponse.json();
-        const accessToken = authData.access_token;
+        if (!geoData.results.length) throw new Error("City not found");
 
-        const hotelSearchUrl = `https://test.api.amadeus.com/v2/shopping/hotels/forsale?cityCode=${city}&checkInDate=2024-12-20&checkOutDate=2024-12-21`;
+        const countryCode = geoData.results[0].components.country_code.toUpperCase();
+        const currencyCode = countryToCurrencyMap[countryCode];
 
-        const hotelResponse = await fetch(hotelSearchUrl, {
-          headers: {
-            'Authorization': `Bearer ${accessToken}`
-          }
-        });
+        if (!currencyCode) {
+          document.getElementById("currencyResult").querySelector('.content').innerHTML = `<p>No currency info for ${city}.</p>`;
+          return;
+        }
 
-        const hotelData = await hotelResponse.json();
-        
-        return hotelData.data?.[0]?.name || 'No hotels found';
+        const exchangeUrl = `https://v6.exchangerate-api.com/v6/${exchangeRateApiKey}/latest/${currencyCode}`;
+        const exchangeResponse = await fetch(exchangeUrl);
+        const exchangeData = await exchangeResponse.json();
+
+        const usdRate = exchangeData.conversion_rates?.USD || "N/A";
+        const eurRate = exchangeData.conversion_rates?.EUR || "N/A";
+
+        document.getElementById("currencyResult").querySelector('.content').innerHTML = `
+          <h3>Currency Info for ${city}</h3>
+          <p>Currency Code: ${currencyCode}</p>
+          <ul>
+            <li>1 ${currencyCode} = ${usdRate} USD</li>
+            <li>1 ${currencyCode} = ${eurRate} EUR</li>
+          </ul>
+        `;
+
+        // Set background image for currency card
+        fetchImage(city, "currencyResult");
       } catch (error) {
-        console.error("Hotel fetch error:", error);
-        return 'No hotels found';
+        console.error(error);
+        document.getElementById("currencyResult").querySelector('.content').innerHTML = `<p>Error fetching currency data.</p>`;
       }
     }
 
-    async function fetchAllData() {
-      const city = document.getElementById('cityInput').value;
-
-      if (!city) {
-        alert("Please enter a city");
-        return;
+    function fetchAllData() {
+      const city = document.getElementById("cityInput").value;
+      if (city.trim()) {
+        getWeather(city);
+        fetchCityFact(city);
+        fetchCurrency(city);
+      } else {
+        alert("Please enter a city.");
       }
-
-      // Get and display weather
-      const weather = await getWeather(city);
-      document.getElementById('weatherResult').querySelector('.content').innerHTML = weather
-        ? `Weather in ${city}: ${weather.temperature}°C, ${weather.weathercode}`
-        : 'Weather data not found.';
-
-      // Get and display city fact
-      const cityFact = await getCityFact(city);
-      document.getElementById('cityFact').querySelector('.content').innerHTML = `Fact about ${city}: ${cityFact}`;
-
-      // Get and display currency
-      const currency = await getCurrency(city);
-      document.getElementById('currencyResult').querySelector('.content').innerHTML = `Currency in ${city}: ${currency}`;
-
-      // Get and display hotel
-      const hotel = await getHotels(city);
-      document.getElementById('hotelResult').querySelector('.content').innerHTML = `Hotel suggestion: ${hotel}`;
     }
   </script>
 </body>
