@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Weather, Facts & Currency App</title>
+  <title>Weather, Facts, Currency & Places App</title>
   <style>
     * {
       margin: 0;
@@ -20,6 +20,7 @@
       height: 100vh;
       padding: 20px;
       background-color: #121212;
+      overflow-x: hidden;
     }
 
     h1 {
@@ -35,6 +36,8 @@
       align-items: center;
       width: 100%;
       gap: 20px;
+      opacity: 0;
+      animation: fadeIn 1s forwards;
     }
 
     .card {
@@ -42,11 +45,12 @@
       border-radius: 8px;
       box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
       padding: 20px;
-      width: 300px;
-      max-height: 400px;
-      overflow-y: auto;
+      width: 90%;
+      max-width: 350px;
       background-size: cover;
       background-position: center;
+      overflow-y: auto;
+      text-align: center;
     }
 
     .card .content {
@@ -54,22 +58,36 @@
       z-index: 1;
       padding: 20px;
       border-radius: 8px;
-      background: rgba(255, 255, 255, 0.3); /* Semi-transparent background for glassmorphism */
-      backdrop-filter: blur(10px); /* Blur effect */
+      background: rgba(255, 255, 255, 0.4);
+      backdrop-filter: blur(10px);
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-
-    #cityFact .content {
-      background: rgba(255, 255, 255, 0.4); /* For more visible text */
+      color: white;
+      font-size: 1rem;
+      line-height: 1.5;
+      text-shadow: 0 0 10px rgba(0, 0, 0, 0.5); /* Text shadow for readability */
     }
 
     input[type="text"], button {
-      padding: 10px;
+      padding: 12px;
       margin: 10px;
+      font-size: 1rem;
+      width: 80%;
+      max-width: 350px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      outline: none;
     }
 
     button {
       cursor: pointer;
+      background-color: #1e90ff;
+      color: white;
+      border: none;
+      transition: background-color 0.3s;
+    }
+
+    button:hover {
+      background-color: #0b7eec;
     }
 
     a {
@@ -77,22 +95,105 @@
       text-decoration: none;
     }
 
+    /* Card animations */
+    @keyframes fadeIn {
+      0% {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes slideIn {
+      0% {
+        opacity: 0;
+        transform: translateX(-50px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    /* Mobile optimization */
+    @media (max-width: 768px) {
+      .container {
+        gap: 15px;
+      }
+
+      h1 {
+        font-size: 1.5rem;
+      }
+
+      .card .content {
+        font-size: 0.9rem;
+      }
+
+      input[type="text"], button {
+        font-size: 1.1rem;
+        padding: 10px;
+        width: 90%;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .card {
+        width: 95%;
+      }
+
+      h1 {
+        font-size: 1.25rem;
+      }
+
+      .card .content {
+        font-size: 0.85rem;
+      }
+    }
+    .fixed-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background-color: #121212; /* Match your page's background */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2); /* Adds a subtle shadow */
+  z-index: 1000; /* Ensures the bar stays on top */
+}
+
+.fixed-bar input[type="text"],
+.fixed-bar button {
+  margin: 5px; /* Minor margin for spacing */
+}
+.container {
+  margin-top: 80px; /* Adjust based on fixed bar height */
+}
   </style>
 </head>
 <body>
-  <h1>Weather, Facts & Currency App</h1>
+  <h1>Weather, Facts, Currency & Places App</h1>
 
+  <div class="fixed-bar">
   <input type="text" id="cityInput" placeholder="Enter city or country..." />
   <button onclick="fetchAllData()">Get Info</button>
+</div>
   
   <div class="container">
-    <div id="weatherResult" class="card">
+    <div id="cityFact" class="card" style="animation: slideIn 1s forwards;">
       <div class="content"></div>
     </div>
-    <div id="cityFact" class="card">
+    <div id="weatherResult" class="card" style="animation: slideIn 1s forwards;">
       <div class="content"></div>
     </div>
-    <div id="currencyResult" class="card">
+    <div id="currencyResult" class="card" style="animation: slideIn 1s forwards;">
+      <div class="content"></div>
+    </div>
+    <div id="restaurantsHotelsResult" class="card" style="animation: slideIn 1s forwards;">
       <div class="content"></div>
     </div>
   </div>
@@ -109,6 +210,9 @@
     };
 
     const unsplashApiKey = '6W_vBP2bAg9e50c7vgnoHW06eakd6JQ-qzeICkghABk'; // Add your Unsplash API key here
+    const apiKeyGeo = '04fe12020a6f4da0af38c5f5cf06ff41'; // OpenCage API key
+    const exchangeRateApiKey = 'bda6c1b974bd953dfd43f174'; // ExchangeRate API Key
+    const yelpApiKey = 'YOUR_YELP_API_KEY'; // Replace with your Yelp API key
 
     async function fetchImage(query, cardId) {
       const url = `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&client_id=${unsplashApiKey}&per_page=1`;
@@ -121,7 +225,6 @@
           const imageUrl = data.results[0].urls.regular;
           document.getElementById(cardId).style.backgroundImage = `url(${imageUrl})`;
 
-          // Calculate brightness of the background and adjust text color
           adjustTextColorBasedOnBrightness(imageUrl, cardId);
         } else {
           console.error("No images found for query:", query);
@@ -131,7 +234,6 @@
       }
     }
 
-    // Function to adjust text color based on the background image's brightness
     function adjustTextColorBasedOnBrightness(imageUrl, cardId) {
       const img = new Image();
       img.src = imageUrl;
@@ -143,19 +245,16 @@
         const pixelData = ctx.getImageData(0, 0, 1, 1).data;
         const brightness = (0.2126 * pixelData[0] + 0.7152 * pixelData[1] + 0.0722 * pixelData[2]) / 255;
         
-        // If brightness is less than 0.5, set text to white; otherwise, set it to black
         if (brightness < 0.5) {
-          document.getElementById(cardId).querySelector('.content').style.color = "#ffffff"; // White text for dark background
+          document.getElementById(cardId).querySelector('.content').style.color = "#ffffff";
         } else {
-          document.getElementById(cardId).querySelector('.content').style.color = "#000000"; // Black text for light background
+          document.getElementById(cardId).querySelector('.content').style.color = "#000000";
         }
       };
     }
 
     async function getWeather(city) {
-      const apiKeyGeo = '04fe12020a6f4da0af38c5f5cf06ff41'; // Replace with valid OpenCage API key
       const geoUrl = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(city)}&key=${apiKeyGeo}`;
-
       try {
         const geoResponse = await fetch(geoUrl);
         const geoData = await geoResponse.json();
@@ -173,15 +272,10 @@
           <h3>Weather in ${city}</h3>
           <p><strong>Temperature:</strong> ${temperature}°C</p>
         `;
-
-        // Set background image based on temperature
-        if (temperature < 10) {
-          fetchImage("snow", "weatherResult");  // Snowy image for cold weather
-        } else if (temperature >= 10 && temperature <= 25) {
-          fetchImage("sunny", "weatherResult");  // Sunny image for mild weather
-        } else {
-          fetchImage("hot", "weatherResult");  // Hot image for warm weather
-        }
+        
+        if (temperature < 10) fetchImage("snow", "weatherResult");
+        else if (temperature >= 10 && temperature <= 25) fetchImage("sunny", "weatherResult");
+        else fetchImage("hot", "weatherResult");
 
       } catch (error) {
         console.error(error);
@@ -191,7 +285,6 @@
 
     async function fetchCityFact(city) {
       const wikiUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(city)}`;
-
       try {
         const response = await fetch(wikiUrl);
         const data = await response.json();
@@ -206,7 +299,6 @@
           document.getElementById("cityFact").querySelector('.content').innerHTML = `<p>No facts found for ${city}.</p>`;
         }
 
-        // Set background image for city fact card
         fetchImage(city, "cityFact");
       } catch (error) {
         console.error(error);
@@ -215,11 +307,8 @@
     }
 
     async function fetchCurrency(city) {
-      const apiKeyGeo = '04fe12020a6f4da0af38c5f5cf06ff41'; // OpenCage API key
-      const exchangeRateApiKey = 'bda6c1b974bd953dfd43f174'; // ExchangeRate API Key
-
+      const geoUrl = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(city)}&key=${apiKeyGeo}`;
       try {
-        const geoUrl = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(city)}&key=${apiKeyGeo}`;
         const geoResponse = await fetch(geoUrl);
         const geoData = await geoResponse.json();
 
@@ -248,12 +337,39 @@
             <li>1 ${currencyCode} = ${eurRate} EUR</li>
           </ul>
         `;
-
-        // Set background image for currency card
         fetchImage(city, "currencyResult");
       } catch (error) {
         console.error(error);
         document.getElementById("currencyResult").querySelector('.content').innerHTML = `<p>Error fetching currency data.</p>`;
+      }
+    }
+
+    async function fetchRestaurantsAndHotels(city) {
+      const yelpUrl = `https://api.yelp.com/v3/businesses/search?term=restaurants,hotels&location=${encodeURIComponent(city)}`;
+      try {
+        const response = await fetch(yelpUrl, {
+          headers: {
+            Authorization: `Bearer ${yelpApiKey}`
+          }
+        });
+        const data = await response.json();
+
+        let placesHtml = `<h3>Restaurants and Hotels in ${city}</h3>`;
+        if (data.businesses.length > 0) {
+          placesHtml += '<ul>';
+          data.businesses.forEach(place => {
+            placesHtml += `<li><strong>${place.name}</strong><br>${place.location.address1}<br>Rating: ${place.rating}</li>`;
+          });
+          placesHtml += '</ul>';
+        } else {
+          placesHtml += '<p>No restaurants or hotels found.</p>';
+        }
+
+        document.getElementById("restaurantsHotelsResult").querySelector('.content').innerHTML = placesHtml;
+        fetchImage(city, "restaurantsHotelsResult");
+      } catch (error) {
+        console.error(error);
+        document.getElementById("restaurantsHotelsResult").querySelector('.content').innerHTML = `<p>Error fetching places data.</p>`;
       }
     }
 
@@ -263,6 +379,7 @@
         getWeather(city);
         fetchCityFact(city);
         fetchCurrency(city);
+        fetchRestaurantsAndHotels(city);
       } else {
         alert("Please enter a city.");
       }
