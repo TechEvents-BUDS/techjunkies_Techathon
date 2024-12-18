@@ -1,159 +1,336 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>City Information</title>
-    <style>
-        /* General Reset */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Weather, Facts & Currency App</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-        body {
-            margin: 0;
-            padding: 0;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            font-family: Arial, sans-serif;
-            background-color: #f5f5f5;
-        }
+    body {
+      font-family: 'Arial', sans-serif;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      padding: 20px;
+      background-color: #121212;
+      color: white;
+    }
 
-        /* Title */
-        h1 {
-            margin-top: 20px;
-            text-align: center;
-            font-size: 28px;
-            font-weight: bold;
-        }
+    h1 {
+      font-size: 1.8rem;
+      margin-bottom: 20px;
+    }
 
-        /* Search Box Container */
-        .container {
-            position: absolute;
-            bottom: 20px; /* Positioned at the bottom initially */
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            transition: bottom 0.6s ease, transform 0.6s ease; /* Smooth animation */
-        }
+    .container {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      gap: 20px;
+    }
 
-        input {
-            width: 300px;
-            padding: 10px;
-            font-size: 16px;
-            border: 2px solid #ddd;
-            border-radius: 5px;
-            margin-bottom: 10px;
-            outline: none;
-        }
+    .card {
+      position: relative;
+      border-radius: 8px;
+      box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      width: 100%;
+      max-width: 400px;
+      max-height: 400px;
+      overflow-y: auto;
+      background-size: cover;
+      background-position: center;
+      margin: 0 auto;
+      transition: background 0.3s ease-in-out;
+    }
 
-        button {
-            padding: 10px 20px;
-            font-size: 16px;
-            color: white;
-            background-color: #0073e6;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
+    .card .content {
+      position: relative;
+      z-index: 1;
+      padding: 20px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.3); /* Semi-transparent background for glassmorphism */
+      backdrop-filter: blur(10px); /* Blur effect */
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      color: #fff;
+      text-align: center;
+    }
 
-        button:hover {
-            background-color: #005bb5;
-        }
+    #cityFact .content {
+      background: rgba(255, 255, 255, 0.4); /* For more visible text */
+    }
 
-        /* Result Card */
-        .result-card {
-            width: 60%;
-            max-width: 600px;
-            max-height: 400px; /* Limit the height */
-            overflow-y: auto; /* Scroll if text overflows */
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-            opacity: 0;
-            margin-top: -20%; /* Hidden above view initially */
-            transition: margin-top 0.6s ease, opacity 0.6s ease;
-            padding: 20px;
-            text-align: left;
-        }
+    input[type="text"], button {
+      padding: 10px;
+      margin: 10px;
+      width: 100%;
+      max-width: 300px;
+      border: none;
+      border-radius: 5px;
+      font-size: 1rem;
+    }
 
-        .result-card.show {
-            margin-top: 5%; /* Slide into position */
-            opacity: 1;
-        }
+    button {
+      cursor: pointer;
+      background-color: #1e90ff;
+      color: white;
+    }
 
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            input {
-                width: 80%;
-            }
-            .result-card {
-                width: 80%;
-            }
-        }
-    </style>
+    button:hover {
+      background-color: #0057d9;
+    }
+
+    a {
+      color: #1e90ff;
+      text-decoration: none;
+    }
+
+    /* Media Queries for Mobile Responsiveness */
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 1.5rem;
+      }
+
+      .container {
+        gap: 15px;
+      }
+
+      .card {
+        width: 100%;
+        max-width: 100%;
+        padding: 15px;
+      }
+
+      input[type="text"], button {
+        width: 100%;
+        max-width: 100%;
+        font-size: 1.2rem;
+      }
+
+      .card .content {
+        padding: 15px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      h1 {
+        font-size: 1.2rem;
+      }
+
+      .container {
+        gap: 10px;
+      }
+
+      .card {
+        width: 100%;
+        padding: 10px;
+      }
+
+      .card .content {
+        padding: 10px;
+        font-size: 0.9rem;
+      }
+
+      input[type="text"], button {
+        font-size: 1rem;
+      }
+    }
+
+  </style>
 </head>
 <body>
-    <h1>City Information</h1>
+  <h1>Weather, Facts & Currency App</h1>
 
-    <!-- Search Box -->
-    <div class="container">
-        <input type="text" id="cityInput" placeholder="Enter city name...">
-        <button onclick="fetchCityInfo()">Get Info</button>
+  <input type="text" id="cityInput" placeholder="Enter city or country..." />
+  <button onclick="fetchAllData()">Get Info</button>
+  
+  <div class="container">
+    <div id="weatherResult" class="card">
+      <div class="content"></div>
     </div>
-
-    <!-- Result Card -->
-    <div class="result-card" id="resultCard">
-        <!-- Content will be injected here -->
+    <div id="cityFact" class="card">
+      <div class="content"></div>
     </div>
+    <div id="currencyResult" class="card">
+      <div class="content"></div>
+    </div>
+    <div id="hotelResult" class="card">
+      <div class="content"></div>
+    </div>
+  </div>
 
-    <script>
-        async function fetchCityInfo() {
-            const cityName = document.getElementById('cityInput').value.trim();
-            const resultCard = document.getElementById('resultCard');
-            const container = document.querySelector('.container');
+  <script>
+    const countryToCurrencyMap = {
+      AF: "AFN", AL: "ALL", DZ: "DZD", US: "USD", AR: "ARS",
+      AU: "AUD", BR: "BRL", CA: "CAD", CN: "CNY", FR: "EUR",
+      DE: "EUR", IN: "INR", JP: "JPY", MX: "MXN", RU: "RUB",
+      ZA: "ZAR", KR: "KRW", GB: "GBP", VN: "VND", PK:"PKR",
+      IT: "EUR", ES: "EUR", GR: "EUR", TR: "TRY", NZ: "NZD", 
+      IE: "EUR", SE: "SEK", CH: "CHF", NO: "NOK", FI: "EUR",
+      DK: "DKK", PT: "EUR", HU: "HUF", PL: "PLN", BE: "EUR"
+    };
 
-            if (!cityName) {
-                alert('Please enter a city name.');
-                return;
-            }
+    const unsplashApiKey = '6W_vBP2bAg9e50c7vgnoHW06eakd6JQ-qzeICkghABk'; // Add your Unsplash API key here
+    const amadeusClientId = 'Tsr3OIjHDbSJARGJ6VWA7iRBHdlC7hcH';  // Replace with your actual Amadeus client ID
+    const amadeusClientSecret = '4EYdYMDOpNST1PJX';  // Replace with your actual Amadeus client secret
 
-            try {
-                // Fetch Wikipedia API data
-                const response = await fetch(
-                    `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(cityName)}`
-                );
+    async function fetchImage(query, cardId) {
+      const url = `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&client_id=${unsplashApiKey}&per_page=1`;
 
-                if (!response.ok) {
-                    throw new Error('City not found or API error');
-                }
+      try {
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        if (data.results && data.results.length > 0) {
+          const imageUrl = data.results[0].urls.regular;
+          document.getElementById(cardId).style.backgroundImage = `url(${imageUrl})`;
 
-                const data = await response.json();
-
-                // Inject data into the card
-                resultCard.innerHTML = `
-                    <h2>${data.title}</h2>
-                    <p>${data.extract}</p>
-                    ${data.thumbnail ? `<img src="${data.thumbnail.source}" alt="${data.title}" style="width:100%; border-radius: 8px; margin-top: 10px;">` : ''}
-                    <p><a href="${data.content_urls.desktop.page}" target="_blank" style="color: #0073e6; text-decoration: none;">Read more on Wikipedia</a></p>
-                `;
-
-                // Animate the search box and result card
-                container.style.bottom = "10px";
-                container.style.transform = "translateY(200px)";
-                resultCard.classList.add('show');
-            } catch (error) {
-                console.error('Error fetching city information:', error);
-                resultCard.innerHTML = `<p style="color: red;">Failed to load information for "${cityName}". Please try again.</p>`;
-                resultCard.classList.add('show');
-            }
+          // Calculate brightness of the background and adjust text color
+          adjustTextColorBasedOnBrightness(imageUrl, cardId);
+        } else {
+          console.error("No images found for query:", query);
         }
-    </script>
+      } catch (error) {
+        console.error("Error fetching image:", error);
+      }
+    }
+
+    // Function to adjust text color based on the background image's brightness
+    function adjustTextColorBasedOnBrightness(imageUrl, cardId) {
+      const img = new Image();
+      img.src = imageUrl;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, img.width, img.height);
+        
+        const pixelData = ctx.getImageData(0, 0, 1, 1).data;
+        const brightness = (0.2126 * pixelData[0] + 0.7152 * pixelData[1] + 0.0722 * pixelData[2]) / 255;
+        
+        // If brightness is less than 0.5, set text to white; otherwise, set it to black
+        if (brightness < 0.5) {
+          document.getElementById(cardId).querySelector('.content').style.color = "#ffffff"; // White text for dark background
+        } else {
+          document.getElementById(cardId).querySelector('.content').style.color = "#000000"; // Black text for light background
+        }
+      };
+    }
+
+    async function getWeather(city) {
+      const apiKeyGeo = '04fe12020a6f4da0af38c5f5cf06ff41'; // Replace with valid OpenCage API key
+      const geoUrl = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(city)}&key=${apiKeyGeo}`;
+
+      try {
+        const geoResponse = await fetch(geoUrl);
+        const geoData = await geoResponse.json();
+
+        if (geoData.results.length === 0) throw new Error("City not found");
+
+        const { lat, lng } = geoData.results[0].geometry;
+
+        const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current_weather=true`;
+        const weatherResponse = await fetch(weatherUrl);
+        const weatherData = await weatherResponse.json();
+        
+        return weatherData.current_weather;
+      } catch (error) {
+        console.error("Weather data fetch error:", error);
+        return null;
+      }
+    }
+
+    async function getCityFact(city) {
+      const url = `https://restcountries.com/v3.1/name/${encodeURIComponent(city)}`;
+
+      try {
+        const response = await fetch(url);
+        const data = await response.json();
+
+        return data[0]?.name?.common || 'No data available';
+      } catch (error) {
+        console.error("City fact fetch error:", error);
+        return 'No data available';
+      }
+    }
+
+    async function getCurrency(city) {
+      const currencyCode = countryToCurrencyMap[city] || 'USD';
+      return currencyCode;
+    }
+
+    async function getHotels(city) {
+      const authUrl = `https://test.api.amadeus.com/v1/security/oauth2/token`;
+      const credentials = btoa(`${amadeusClientId}:${amadeusClientSecret}`);
+
+      const headers = {
+        'Authorization': `Basic ${credentials}`,
+        'Content-Type': 'application/x-www-form-urlencoded'
+      };
+
+      const data = new URLSearchParams();
+      data.append('grant_type', 'client_credentials');
+
+      try {
+        const authResponse = await fetch(authUrl, {
+          method: 'POST',
+          headers: headers,
+          body: data
+        });
+
+        const authData = await authResponse.json();
+        const accessToken = authData.access_token;
+
+        const hotelSearchUrl = `https://test.api.amadeus.com/v2/shopping/hotels/forsale?cityCode=${city}&checkInDate=2024-12-20&checkOutDate=2024-12-21`;
+
+        const hotelResponse = await fetch(hotelSearchUrl, {
+          headers: {
+            'Authorization': `Bearer ${accessToken}`
+          }
+        });
+
+        const hotelData = await hotelResponse.json();
+        
+        return hotelData.data?.[0]?.name || 'No hotels found';
+      } catch (error) {
+        console.error("Hotel fetch error:", error);
+        return 'No hotels found';
+      }
+    }
+
+    async function fetchAllData() {
+      const city = document.getElementById('cityInput').value;
+
+      if (!city) {
+        alert("Please enter a city");
+        return;
+      }
+
+      // Get and display weather
+      const weather = await getWeather(city);
+      document.getElementById('weatherResult').querySelector('.content').innerHTML = weather
+        ? `Weather in ${city}: ${weather.temperature}°C, ${weather.weathercode}`
+        : 'Weather data not found.';
+
+      // Get and display city fact
+      const cityFact = await getCityFact(city);
+      document.getElementById('cityFact').querySelector('.content').innerHTML = `Fact about ${city}: ${cityFact}`;
+
+      // Get and display currency
+      const currency = await getCurrency(city);
+      document.getElementById('currencyResult').querySelector('.content').innerHTML = `Currency in ${city}: ${currency}`;
+
+      // Get and display hotel
+      const hotel = await getHotels(city);
+      document.getElementById('hotelResult').querySelector('.content').innerHTML = `Hotel suggestion: ${hotel}`;
+    }
+  </script>
 </body>
 </html>
